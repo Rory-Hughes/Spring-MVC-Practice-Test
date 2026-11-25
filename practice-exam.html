@@ -36,7 +36,7 @@
 </li>
 <li><p>Go to <a href="http://localhost:8085/equipment">localhost:8085/equipment</a>. The starter should show the heading and column labels with no rows. Use Ctrl+C to stop the application, and restart it after edits to pick up changes.</p>
 </li>
-<li><p>The first run can download Maven and dependencies. The embedded H2 database loads three rows at startup. Data survives page reloads while the app runs. Stopping the app resets the database, so verify persistence before stopping it.</p>
+<li><p>The first run can download Maven and dependencies. Spring Boot starts the in-memory H2 database automatically and loads three sample records from <code>data.sql</code>. If IntelliJ prompts you to connect to the database or provide credentials, click <strong>Cancel</strong>. That connection is optional and is only used by IntelliJ's Database panel. Data survives page reloads while the app runs. Stopping the app resets the database, so verify persistence before stopping it.</p>
 </li>
 </ol>
 <p>The files to complete are under <code>starter/src/main</code>. Find the Java files under <code>java/ITSD</code> and the templates under <code>resources/templates/equipment</code>.</p>
