@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Edit trail equipment</title>
+    <link rel="stylesheet" href="/practice.css" th:href="@{/practice.css}">
+</head>
+<body>
+<main>
+    <h1>Edit trail equipment</h1>
+    <!-- TODO Display the existing asset tag. -->
+    <form method="post" novalidate>
+        <!-- TODO Bind the form object and build the action URL. -->
+        <p>
+            <label for="name">Name</label>
+            <input id="name" type="text">
+            <!-- TODO Display any error for name. -->
+        </p>
+        <p>
+            <label for="quantity">Quantity</label>
+            <input id="quantity" type="text" inputmode="numeric">
+            <!-- TODO Display any error for quantity. -->
+        </p>
+        <button type="submit">Save changes</button>
+        <a href="/equipment" th:href="@{/equipment}">Cancel</a>
+    </form>
+</main>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Spring MVC quick reference</title>
+    <link rel="stylesheet" href="../assets/study.css">
+</head>
+<body class="reference">
+<main>
+<h1>Spring MVC quick reference</h1>
+<p class="intro">Trace the method, URL, model key, field name and record ID.</p>
+<table>
+<thead><tr><th>Where</th><th>Pattern</th></tr></thead>
+<tbody>
+<tr><td>GET list</td><td><code>model.addAttribute("items", service.findAll())</code></td></tr>
+<tr><td>GET edit</td><td>Read <code>@PathVariable</code>, load row, prefill form, add the form and any data the template needs.</td></tr>
+<tr><td>POST edit</td><td><code>@Valid @ModelAttribute("form") EditForm form, BindingResult errors, Model model</code></td></tr>
+<tr><td>Invalid POST</td><td>Add supporting data back, keep the bound form, return the edit view.</td></tr>
+<tr><td>Valid POST</td><td>Load row by ID, copy editable fields, save, return <code>"redirect:/items"</code>.</td></tr>
+<tr><td>Table row</td><td><code>th:each="item : ${items}"</code> · <code>th:text="${item.name}"</code></td></tr>
+<tr><td>Row link</td><td><code>th:href="@{/items/{id}/edit(id=${item.id})}"</code></td></tr>
+<tr><td>Form</td><td><code>method="post"</code> · <code>th:object="${form}"</code> · <code>th:action="@{...}"</code></td></tr>
+<tr><td>Input and error</td><td><code>th:field="*{name}"</code> · <code>th:errors="*{name}"</code> · <code>th:errorclass="invalid"</code></td></tr>
+<tr><td>Constraints</td><td>Required text <code>@NotBlank</code> · length <code>@Size</code> · required number <code>Integer</code> and <code>@NotNull</code> · range <code>@Min</code> and <code>@Max</code></td></tr>
+</tbody>
+</table>
+<h2>Debug by symptom</h2>
+<ul>
+<li><strong>404 on Edit.</strong> Compare the generated link, the GET mapping and the selected row ID.</li>
+<li><strong>405 on Save.</strong> Compare the form method and action with the POST mapping.</li>
+<li><strong>Blank table.</strong> Check the service results, model key and <code>th:each</code> expression.</li>
+<li><strong>Form rendering fails.</strong> Match the form object name across GET, POST and <code>th:object</code>. Check that the error branch restores the ID and other supporting data.</li>
+<li><strong>Errors missing.</strong> Check <code>@Valid</code>, the position of <code>BindingResult</code> and the property names in <code>th:field</code> and <code>th:errors</code>.</li>
+<li><strong>Extra row or wrong row.</strong> Check the selected URL ID and that the service saves the retrieved entity.</li>
+</ul>
+<footer><a href="../lessons/0001-spring-mvc-edit-workflow.html">Study notes and worked examples</a></footer>
+</main>
+</body>
+</html>

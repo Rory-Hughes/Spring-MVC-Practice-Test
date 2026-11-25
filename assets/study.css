@@ -1,0 +1,38 @@
+
+:root {
+    color-scheme: light;
+    font: 17px/1.65 "Segoe UI", system-ui, sans-serif;
+    color: #162d2b;
+    background: #f7f9f5;
+}
+
+body { margin: 0; }
+main { max-width: 50rem; margin: auto; padding: 2.5rem 1.25rem; }
+h1, h2 { font-family: Georgia, serif; line-height: 1.16; }
+h1 { font-size: clamp(2.25rem, 6vw, 3.75rem); margin-bottom: 0.45em; }
+h2 { font-size: 1.65rem; }
+.intro { font-size: 1.22rem; }
+nav { font-size: 0.94rem; }
+a { color: #065953; text-underline-offset: 0.18em; }
+section { border-top: 1px solid #c7d6cb; margin-top: 2rem; }
+.flow, details { background: #e6efe8; padding: 0.8rem 1rem; border-left: 4px solid #337263; }
+summary { cursor: pointer; font-weight: 700; }
+li + li { margin-top: 0.4rem; }
+pre { overflow-x: auto; padding: 1rem; background: #182d2b; color: #f3fcf7; border-radius: 0.3rem; }
+code { font: 0.9em/1.5 Consolas, monospace; }
+p code, td code, li code { overflow-wrap: anywhere; }
+table { border-collapse: collapse; width: 100%; }
+td, th { border-bottom: 1px solid #c7d6cb; padding: 0.5rem; vertical-align: top; text-align: left; }
+td:first-child { width: 23%; }
+footer { margin-top: 2rem; border-top: 1px solid #c7d6cb; padding-top: 0.7rem; }
+
+@media print {
+    :root { font-size: 11pt; color: black; background: white; }
+    main { max-width: none; padding: 0; }
+    nav { display: none; }
+    h1 { font-size: 27pt; }
+    h2 { break-after: avoid; }
+    pre { background: white; color: black; border: 1px solid #777; white-space: pre-wrap; }
+    tr { break-inside: avoid; }
+    .reference { font-size: 10pt; }
+}

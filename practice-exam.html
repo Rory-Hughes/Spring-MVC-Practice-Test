@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Spring MVC practice exam</title>
+    <link rel="stylesheet" href="assets/study.css">
+    <link rel="stylesheet" href="assets/study-pages.css">
+</head>
+<body>
+<main class="study-page">
+    <nav class="study-nav" aria-label="Practice test pages">
+        <a href="index.html">Overview</a>
+        <a href="practice-exam.html" aria-current="page">Practice exam</a>
+        <a href="mission.html">Mission</a>
+        <a href="resources.html">Resources</a>
+    </nav>
+    <article>
+<h1 id="spring-mvc-practice-exam-trail-equipment">Spring MVC practice exam | Trail equipment</h1>
+<nav class="exam-contents" aria-label="Exam sections">
+    <a href="#setup">Setup</a>
+    <a href="#get-and-post-handlers-using-model-25-marks">1. Handlers</a>
+    <a href="#validation-and-error-messages-25-marks">2. Validation</a>
+    <a href="#collection-table-15-marks">3. Table</a>
+    <a href="#edit-form-15-marks">4. Form</a>
+    <a href="#database-reads-and-update-20-marks">5. Database</a>
+    <a href="#mark-your-attempt">Marking rubric</a>
+    <a href="#browser-checks">Browser checks</a>
+</nav>
+<p><strong>Suggested time</strong> 60 minutes plus 10 minutes to check your work. This is a mock exam based on the announcement. The timing, scenario and marks are practice choices.</p>
+<p>A trail crew needs a page to view its equipment inventory and correct the name and quantity on existing records. You have a Spring Boot project with the entity, repository, seed data, and partial controller, service, edit form model and templates.</p>
+<h2 id="setup">Setup</h2>
+<ol>
+<li><p>Open <code>starter</code> as a Maven project in IntelliJ. Use JDK 17 or newer. You can also open a PowerShell terminal in <code>starter</code> and run:</p>
+<pre><code class="language-powershell">.\mvnw.cmd spring-boot:run
+</code></pre>
+</li>
+<li><p>Go to <a href="http://localhost:8085/equipment">localhost:8085/equipment</a>. The starter should show the heading and column labels with no rows. Use Ctrl+C to stop the application, and restart it after edits to pick up changes.</p>
+</li>
+<li><p>The first run can download Maven and dependencies. The embedded H2 database loads three rows at startup. Data survives page reloads while the app runs. Stopping the app resets the database, so verify persistence before stopping it.</p>
+</li>
+</ol>
+<p>The files to complete are under <code>starter/src/main</code>. Find the Java files under <code>java/ITSD</code> and the templates under <code>resources/templates/equipment</code>.</p>
+<h2 id="get-and-post-handlers-using-model-25-marks">1. GET and POST handlers using Model | 25 marks</h2>
+<p>Work in <code>EquipmentController.java</code>.</p>
+<div class="study-table"><table>
+<thead>
+<tr>
+<th>Method and URL</th>
+<th>Expected result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET <code>/equipment</code></td>
+<td>Add the sorted collection to the model as <code>equipmentList</code>. Render <code>equipment/list</code>.</td>
+</tr>
+<tr>
+<td>GET <code>/equipment/{id}/edit</code></td>
+<td>Load the record by URL ID. Add it as <code>equipmentRecord</code>. Copy its current name and quantity into an <code>EquipmentEditForm</code>, add it as <code>equipmentForm</code> and render <code>equipment/edit</code>.</td>
+</tr>
+<tr>
+<td>POST <code>/equipment/{id}/edit</code></td>
+<td>Bind and validate the submitted <code>equipmentForm</code>. If it has errors, put <code>equipmentRecord</code> back in the model and return <code>equipment/edit</code> with the submitted values and errors. Otherwise call the service to update the row, then redirect to <code>/equipment</code>.</td>
+</tr>
+</tbody>
+</table></div>
+<p>An unknown numeric ID should result in HTTP 404 on both edit routes. The templates use the record for its ID and asset tag. On a POST with errors, keep the bound form available for Thymeleaf.</p>
+<h2 id="validation-and-error-messages-25-marks">2. Validation and error messages | 25 marks</h2>
+<p>Work in <code>EquipmentEditForm.java</code>, <code>EquipmentController.java</code> and <code>edit.html</code>.</p>
+<ul>
+<li><strong>Name</strong> is required, cannot be whitespace only and has a maximum of 60 characters.</li>
+<li><strong>Quantity</strong> is required and must be a whole number from 0 to 100 inclusive. The form already uses <code>Integer</code> so a blank quantity can reach validation as null.</li>
+<li>Add Jakarta validation annotations with clear messages. Use <code>@Valid</code> on the bound form and inspect its <code>BindingResult</code> before saving.</li>
+<li>Show field errors beside each input using Thymeleaf error attributes. Visually mark invalid inputs. The starter has an <code>invalid</code> CSS class.</li>
+<li>Leave the form's <code>novalidate</code> attribute in place so the exercise checks server-side validation.</li>
+</ul>
+<h2 id="collection-table-15-marks">3. Collection table | 15 marks</h2>
+<p>Work in <code>list.html</code>. Use a row loop to show the asset tag, name, quantity and an Edit link for every record. Each link should include that record's ID and open its own edit form. The expected asset-tag order is TR-103, TR-202, TR-305.</p>
+<h2 id="edit-form-15-marks">4. Edit form | 15 marks</h2>
+<p>Work in <code>edit.html</code>. Show the asset tag as read-only text. Bind the name and quantity inputs to the form object so they show the current values when the page opens. Post to the edit URL for the selected ID. Keep the starter's Save and Cancel controls.</p>
+<h2 id="database-reads-and-update-20-marks">5. Database reads and update | 20 marks</h2>
+<p>Work in <code>EquipmentService.java</code>. Use the provided repository to list records by asset tag and find a record by ID. For the update, load the existing record, copy over its name and quantity, save it and report success. Report failure when the ID is missing. The record keeps its original ID and asset tag, and the row count stays at three.</p>
+<h2 id="mark-your-attempt">Mark your attempt</h2>
+<div class="study-table"><table>
+<thead>
+<tr>
+<th>Marks</th>
+<th>What to verify</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10</td>
+<td>The list GET passes the collection and the edit GET loads the selected row and prefilled form.</td>
+</tr>
+<tr>
+<td>15</td>
+<td>A valid POST redirects, an invalid POST re-renders the form with its supporting model data, and an unknown numeric ID returns 404.</td>
+</tr>
+<tr>
+<td>15</td>
+<td>Each validation rule works and invalid submissions skip the update.</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Errors appear beside the right inputs and those inputs are highlighted.</td>
+</tr>
+<tr>
+<td>15</td>
+<td>The table displays three correctly ordered records with working row-specific links.</td>
+</tr>
+<tr>
+<td>15</td>
+<td>The edit form shows the asset tag and prefilled inputs and posts to the selected ID.</td>
+</tr>
+<tr>
+<td>20</td>
+<td>The service reads the correct records and persists edits to exactly the selected row while preserving its ID and tag.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="browser-checks">Browser checks</h3>
+<ol>
+<li><p>Open Edit on <strong>TR-103</strong>. Confirm you see <strong>Trail radio</strong> and <strong>4</strong>.</p>
+</li>
+<li><p>Clear both fields and save. Look for both errors, the same asset tag, and the same edit URL. Open the list in another tab to verify the stored name and quantity are still unchanged.</p>
+</li>
+<li><p>Enter a name with 61 characters and a quantity of <strong>101</strong>. Save and check both errors. Also try a whitespace-only name and a quantity of <strong>-1</strong>. Try <strong>3.5</strong> as well and look for the whole-number error.</p>
+</li>
+<li><p>Use <strong>Weather radio</strong> and <strong>0</strong>. Save and verify you land back on the list. Refresh and reopen its Edit link. Confirm the new values, the same tag, and three rows. Repeat with <strong>100</strong> to check the upper boundary.</p>
+</li>
+<li><p>Open <code>/equipment/999/edit</code> and check for a 404. A direct POST to that URL with valid values should also return 404. To check the latter in PowerShell 7, run:</p>
+<pre><code class="language-powershell">$response = Invoke-WebRequest -Uri 'http://localhost:8085/equipment/999/edit' `
+    -Method Post -Body @{ name = 'Weather radio'; quantity = '8' } -SkipHttpErrorCheck
+$response.StatusCode
+</code></pre>
+</li>
+<li><p>Compare with the separate <a href="answer-key/README.md">Answer Key</a> once you have scored your attempt.</p>
+</li>
+</ol>
+    </article>
+</main>
+</body>
+</html>

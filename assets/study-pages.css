@@ -1,0 +1,60 @@
+.study-nav,
+.exam-contents {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 0.95rem;
+}
+
+.study-nav {
+    align-items: center;
+    border-bottom: 1px solid #c7d6cb;
+    padding-bottom: 0.75rem;
+}
+
+.study-nav a {
+    padding: 0.2rem 0.35rem;
+}
+
+.study-nav a[aria-current="page"] {
+    background: #e6efe8;
+    border-radius: 0.25rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.exam-contents {
+    margin: 1.1rem 0 1.3rem;
+    padding: 0.65rem 0.9rem;
+    background: #e6efe8;
+    border-radius: 0.3rem;
+}
+
+.study-page h2 {
+    margin-top: 2rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid #c7d6cb;
+}
+
+.study-page h3 {
+    margin-top: 1.55rem;
+    line-height: 1.25;
+}
+
+.study-table {
+    overflow-x: auto;
+    margin: 1rem 0;
+}
+
+.study-table th {
+    background: #e6efe8;
+}
+
+.study-table td:first-child {
+    width: auto;
+}
+
+@media print {
+    .study-nav, .exam-contents { display: none; }
+    .study-table { overflow: visible; }
+    .study-table thead { display: table-header-group; }
+}

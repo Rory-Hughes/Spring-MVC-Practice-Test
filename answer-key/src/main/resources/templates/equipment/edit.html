@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Edit trail equipment</title>
+    <link rel="stylesheet" href="/practice.css" th:href="@{/practice.css}">
+</head>
+<body>
+<main>
+    <h1>Edit trail equipment</h1>
+    <p>Asset tag <strong th:text="${equipmentRecord.assetTag}"></strong></p>
+    <form method="post" novalidate th:object="${equipmentForm}"
+          th:action="@{/equipment/{id}/edit(id=${equipmentRecord.id})}">
+        <p>
+            <label for="name">Name</label>
+            <input type="text" th:field="*{name}" th:errorclass="invalid">
+            <span class="field-error" th:if="${#fields.hasErrors('name')}"
+                  th:errors="*{name}"></span>
+        </p>
+        <p>
+            <label for="quantity">Quantity</label>
+            <input type="text" inputmode="numeric" th:field="*{quantity}" th:errorclass="invalid">
+            <span class="field-error" th:if="${#fields.hasErrors('quantity')}"
+                  th:errors="*{quantity}"></span>
+        </p>
+        <button type="submit">Save changes</button>
+        <a href="/equipment" th:href="@{/equipment}">Cancel</a>
+    </form>
+</main>
+</body>
+</html>

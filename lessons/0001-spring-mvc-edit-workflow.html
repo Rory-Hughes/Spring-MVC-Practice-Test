@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Spring MVC study notes</title>
+    <link rel="stylesheet" href="../assets/study.css">
+</head>
+<body class="">
+<main>
+<nav><a href="#handlers">Handlers</a> · <a href="#validation">Validation</a> · <a href="#table">Tables</a> · <a href="#form">Forms</a> · <a href="#database">Updates</a> · <a href="#try">Try it</a></nav>
+<h1>Spring MVC study notes</h1>
+<p class="intro">Follow one library checkout from a row in a list to a prefilled edit form, through validation and back to the database.</p>
+<p>These excerpts belong to an example library app. Assume a supplied <code>Checkout</code> entity with <code>id</code>, <code>borrower</code> and <code>loanDays</code> properties and a <code>CheckoutRepository</code> extending <code>JpaRepository&lt;Checkout, Long&gt;</code>. Our edit form changes the borrower and loan length. Use the same steps with the names and rules from the practice exam.</p>
+<p class="flow">List GET → row link → edit GET → prefilled form → edit POST<br>
+Invalid POST → same form with errors<br>
+Valid POST → database update → redirect → list GET</p>
+
+<section id="handlers">
+<h2>1. Build GET and POST handlers</h2>
+<p>Write down the HTTP method, route, model keys and return value for each handler. Put the common path on the class with <code>@RequestMapping</code>. The method mapping adds the rest of the path. <code>@PathVariable</code> reads the selected row ID, and <code>Model</code> passes named values to the template.</p>
+<pre><code>@Controller
+@RequestMapping("/checkouts")
+class CheckoutController {
+    private final CheckoutService service;
+
+    CheckoutController(CheckoutService service) {
+        this.service = service;
+    }
+
+    @GetMapping
+    String list(Model model) {
+        model.addAttribute("checkouts", service.findAll());
+        return "checkouts/list";
+    }
+
+    @GetMapping("/{id}/edit")
+    String edit(@PathVariable("id") long id, Model model) {
+        Checkout checkout = service.require(id);
+        CheckoutForm form = new CheckoutForm();
+        form.setBorrower(checkout.getBorrower());
+        form.setLoanDays(checkout.getLoanDays());
+        model.addAttribute("checkoutForm", form);
+        model.addAttribute("checkoutId", id);
+        return "checkouts/edit";
+    }
+
+    @PostMapping("/{id}/edit")
+    String update(@PathVariable("id") long id,
+                  @Valid @ModelAttribute("checkoutForm") CheckoutForm form,
+                  BindingResult errors, Model model) {
+        if (errors.hasErrors()) {
+            service.require(id);
+            model.addAttribute("checkoutId", id);
+            return "checkouts/edit";
+        }
+
+        service.update(id, form);
+        return "redirect:/checkouts";
+    }
+}</code></pre>
+<ol>
+<li><strong>List GET.</strong> Read the collection, put it in the model, then return the logical view name. With the standard Thymeleaf setup, <code>checkouts/list</code> maps to <code>templates/checkouts/list.html</code>.</li>
+<li><strong>Edit GET.</strong> Load the selected row and copy its editable values into the form. Add the form and the ID to the model.</li>
+<li><strong>Edit POST.</strong> Spring binds request fields to the named form. When errors exist, retain that bound object and restore any additional data the template needs, such as the ID and dropdown options. On success, <code>redirect:</code> tells the browser to make a new GET, so refreshing reloads the list.</li>
+</ol>
+<p><a href="https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-methods/modelattrib-method-args.html">Spring MVC model attributes</a></p>
+</section>
+
+<section id="validation">
+<h2>2. Validate input and show field errors</h2>
+<p>Translate each rule into a constraint. Import annotations from <code>jakarta.validation.constraints</code> and import <code>jakarta.validation.Valid</code> in the controller. The starter includes the validation dependency.</p>
+<pre><code>public class CheckoutForm {
+    @NotBlank(message = "Enter the borrower's name.")
+    @Size(max = 50, message = "Use 50 characters or fewer.")
+    private String borrower;
+
+    @NotNull(message = "Enter the loan length.")
+    @Min(value = 1, message = "A loan must be at least one day.")
+    @Max(value = 21, message = "A loan can be at most 21 days.")
+    private Integer loanDays;
+
+    // Provide public getters and setters for both fields.
+}</code></pre>
+<ol>
+<li><code>@NotBlank</code> rejects empty or whitespace-only strings. <code>@Size</code> bounds length. Use both for required text with a length limit.</li>
+<li><code>Integer</code> can hold null, which lets <code>@NotNull</code> catch a blank number. <code>@Min</code> and <code>@Max</code> check numeric boundaries. Text that cannot convert to an integer produces a binding error.</li>
+<li>Put <code>BindingResult</code> immediately after the validated form parameter. Call <code>hasErrors()</code> before the service update. A failed validation should leave the stored row unchanged.</li>
+<li>Inside the form, <code>th:errors</code> displays a field's messages. <code>#fields.hasErrors('borrower')</code> can guard the error element, and <code>th:errorclass</code> adds a CSS class to the input when it has errors.</li>
+</ol>
+<pre><code>&lt;input type="text" th:field="*{borrower}" th:errorclass="invalid"&gt;
+&lt;p th:if="${#fields.hasErrors('borrower')}" th:errors="*{borrower}"&gt;&lt;/p&gt;</code></pre>
+<p>Try a blank borrower and loan length 0. Then correct the borrower and enter 21. Predict which request saves and which page displays each message.</p>
+<p><a href="https://www.thymeleaf.org/doc/tutorials/3.1/thymeleafspring.html#validation-and-error-messages">Thymeleaf field errors</a></p>
+</section>
+
+<section id="table">
+<h2>3. Display a collection in a table</h2>
+<p>Put the headings in <code>&lt;thead&gt;</code>. Inside <code>&lt;tbody&gt;</code>, repeat the entire row with <code>th:each</code>. The part before the colon names the current record. The part after it names the collection that the controller put in <code>Model</code>.</p>
+<pre><code>&lt;table&gt;
+    &lt;thead&gt;
+        &lt;tr&gt;&lt;th&gt;Borrower&lt;/th&gt;&lt;th&gt;Loan days&lt;/th&gt;&lt;th&gt;Action&lt;/th&gt;&lt;/tr&gt;
+    &lt;/thead&gt;
+    &lt;tbody&gt;
+        &lt;tr th:each="checkout : ${checkouts}"&gt;
+            &lt;td th:text="${checkout.borrower}"&gt;&lt;/td&gt;
+            &lt;td th:text="${checkout.loanDays}"&gt;&lt;/td&gt;
+            &lt;td&gt;&lt;a th:href="@{/checkouts/{id}/edit(id=${checkout.id})}"&gt;Edit&lt;/a&gt;&lt;/td&gt;
+        &lt;/tr&gt;
+    &lt;/tbody&gt;
+&lt;/table&gt;</code></pre>
+<p>Compare the model key <code>checkouts</code> with the collection expression. Open two links and confirm that their IDs differ. A blank table can mean the service returned an empty list or the template used the wrong model key.</p>
+<p><a href="https://www.thymeleaf.org/doc/tutorials/3.1/thymeleafspring.html#listing-seed-starter-data">Thymeleaf collection rendering</a></p>
+</section>
+
+<section id="form">
+<h2>4. Build a form that edits an existing row</h2>
+<p>Set <code>th:object</code> to the form model key. Inside the form, <code>*{...}</code> refers to a property of that object. For these inputs, <code>th:field</code> sets the submitted field names, input IDs and displayed values. The action URL uses the ID provided by the controller.</p>
+<pre><code>&lt;form method="post" novalidate th:object="${checkoutForm}"
+      th:action="@{/checkouts/{id}/edit(id=${checkoutId})}"&gt;
+    &lt;label for="borrower"&gt;Borrower&lt;/label&gt;
+    &lt;input type="text" th:field="*{borrower}" th:errorclass="invalid"&gt;
+    &lt;p th:errors="*{borrower}"&gt;&lt;/p&gt;
+
+    &lt;label for="loanDays"&gt;Loan days&lt;/label&gt;
+    &lt;input type="text" inputmode="numeric" th:field="*{loanDays}" th:errorclass="invalid"&gt;
+    &lt;p th:errors="*{loanDays}"&gt;&lt;/p&gt;
+
+    &lt;button type="submit"&gt;Save&lt;/button&gt;
+    &lt;a th:href="@{/checkouts}"&gt;Cancel&lt;/a&gt;
+&lt;/form&gt;</code></pre>
+<p><code>novalidate</code> lets you exercise server-side validation in the browser. A text input with <code>inputmode="numeric"</code> suggests a numeric keyboard and lets the form show rejected text again after a conversion error. Open an edit page, check both prefilled values, then submit an invalid value. Look for the entered value, its error and the same form destination.</p>
+<p><a href="https://www.thymeleaf.org/doc/tutorials/3.1/thymeleafspring.html#creating-a-form">Thymeleaf form binding</a></p>
+</section>
+
+<section id="database">
+<h2>5. Update an existing database record</h2>
+<p>Use the URL ID to look up the row. Handle a missing record, copy the fields the user is allowed to edit, and save the loaded entity with its identity intact. The controller calls this service method only when binding and validation succeed.</p>
+<pre><code>@Service
+class CheckoutService {
+    private final CheckoutRepository repository;
+
+    CheckoutService(CheckoutRepository repository) {
+        this.repository = repository;
+    }
+
+    public List&lt;Checkout&gt; findAll() {
+        return repository.findAll();
+    }
+
+    public Checkout require(long id) {
+        return repository.findById(id).orElseThrow(() -&gt;
+            new ResponseStatusException(HttpStatus.NOT_FOUND, "Checkout not found"));
+    }
+
+    @Transactional
+    public void update(long id, CheckoutForm form) {
+        Checkout existing = require(id);
+        existing.setBorrower(form.getBorrower());
+        existing.setLoanDays(form.getLoanDays());
+        repository.save(existing);
+    }
+}</code></pre>
+<p>Test with two rows. Change one, then reload the list and reopen both edit pages. Verify the changed values, the untouched row and the same row count. Request a missing ID to check the failure path.</p>
+<p><a href="https://docs.spring.io/spring-data/jpa/reference/jpa/entity-persistence.html">Spring Data JPA entity persistence</a></p>
+</section>
+
+<section id="try">
+<h2>Try it again with a workshop schedule</h2>
+<p>Assume a <code>Workshop</code> entity with an ID, a readonly room code, a title and a seat count. The title must have visible text and at most 40 characters. Seats must be present and range from 1 to 30. Draft the route signatures, model keys, table row and service update on paper or in a scratch file.</p>
+<ol>
+<li>What goes in the model for the list GET and the edit GET?</li>
+<li>Which form constraints enforce the workshop rules? Where does <code>BindingResult</code> go?</li>
+<li>How does each table row build its own Edit URL? How does the edit form reuse the selected ID?</li>
+<li>When a POST fails validation, what stays in the model and what do you add back?</li>
+<li>Which properties does the update copy? What do you check after you refresh the list?</li>
+</ol>
+<details>
+<summary>Check your draft</summary>
+<p>One set of routes is GET <code>/workshops</code>, GET <code>/workshops/{id}/edit</code>, and POST <code>/workshops/{id}/edit</code>. The list GET adds <code>workshops</code>. The edit GET adds a prefilled <code>workshopForm</code> and the selected <code>workshop</code> for the ID and room code.</p>
+<pre><code>@NotBlank
+@Size(max = 40)
+private String title;
+
+@NotNull
+@Min(1)
+@Max(30)
+private Integer seats;</code></pre>
+<p>Place <code>BindingResult</code> immediately after <code>@Valid @ModelAttribute("workshopForm") WorkshopForm form</code>. Use <code>@{/workshops/{id}/edit(id=${row.id})}</code> in the list and <code>@{/workshops/{id}/edit(id=${workshop.id})}</code> in the form. If the POST has errors, restore <code>workshop</code> and render the edit view with the bound form. On success, load the existing row by ID, copy title and seats, save and redirect. Verify the room code and row count after reload.</p>
+</details>
+</section>
+
+<footer>
+<p>Keep the <a href="../reference/spring-mvc-edit.html">quick reference</a> handy while practising. Ask me to walk through whichever step you want to try together, one change at a time.</p>
+</footer>
+</main>
+</body>
+</html>
